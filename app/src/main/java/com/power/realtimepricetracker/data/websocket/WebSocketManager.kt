@@ -1,7 +1,7 @@
 package com.power.realtimepricetracker.data.websocket
 
 import com.power.realtimepricetracker.data.model.PriceUpdate
-import com.power.realtimepricetracker.data.model.StockSymbols
+import com.power.realtimepricetracker.data.model.StockSymbol
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -55,7 +55,7 @@ class WebSocketManager {
 
     suspend fun intializePrices() {
         delay(1000L)
-        StockSymbols.ALL.forEach { stockSymbols ->
+        StockSymbol.ALL.forEach { stockSymbols ->
             currentPrices[stockSymbols.ticker] = generateInitialPrice(stockSymbols.ticker)
         }
     }
@@ -79,7 +79,7 @@ class WebSocketManager {
     private fun startTickerLoop(ws: WebSocket) {
         tickerJob = scope.launch {
             while (isActive) {
-                StockSymbols.ALL.forEach { stock ->
+                StockSymbol.ALL.forEach { stock ->
                     if (!isActive) return@forEach
 
                     val price = nextPrice(stock.ticker)
