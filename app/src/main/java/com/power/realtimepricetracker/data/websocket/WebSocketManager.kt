@@ -72,7 +72,24 @@ class WebSocketManager {
                 startTickerLoop(webSocket )
             }
 
+            override fun onMessage(ws: WebSocket, text: String) {
+                try {
+                    val update = Json.decodeFromString<PriceUpdate>(text)
+                    scope.launch { _priceUpdates.emit(update) }
+                } catch (e: Exception) {
+                    // malformed message — ignore
+                }
+            }
 
+            override fun onFailure(ws: WebSocket, t: Throwable, response: Response?) {
+                _connectionState.value = ConnectionState.Disconnected
+                tickerJob?.cancel()
+            }
+
+            override fun onClosed(ws: WebSocket, code: Int, reason: String) {
+                _connectionState.value = ConnectionState.Disconnected
+                tickerJob?.cancel()
+            }
         })
     }
 
@@ -102,20 +119,22 @@ class WebSocketManager {
     private fun nextPrice(symbol: String): Double {
         val current = currentPrices.getOrPut(symbol) { generateInitialPrice(symbol) }
 
-        val swing = current * Random.nextDouble(-2.0, 2.0)
+        val swing = current * Random.nextDouble(-0.005, 0.005)
         val next = (current + swing).coerceAtLeast(0.01)
         val rounded = (next * 100).roundToInt() / 100.0
-
         currentPrices[symbol] = rounded
         return rounded
     }
 
     private fun generateInitialPrice(ticker: String): Double {
-        val basePrice = (ticker.hashCode().absoluteValue % 500) + 50
-        val variation = Random.nextDouble(-2.0, 2.0)
+        val basePrice = (ticker.hashCode().absoluteValue % 500) + 100
+        val variation = Random.nextDouble(-5.0, 5.0)
         val price = basePrice + variation
         return (price * 100).toInt() / 100.0
     }
+
+    /** Returns the last generated price for [symbol], or null if not yet initialized. */
+    fun getLastPrice(symbol: String): Double? = currentPrices[symbol]
 
     fun stop() {
         tickerJob?.cancel()
