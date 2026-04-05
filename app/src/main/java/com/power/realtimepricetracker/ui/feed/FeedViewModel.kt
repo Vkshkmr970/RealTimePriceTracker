@@ -2,9 +2,7 @@ package com.power.realtimepricetracker.ui.feed
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.power.realtimepricetracker.data.model.PriceDirection
 import com.power.realtimepricetracker.data.model.PriceRecord
-import com.power.realtimepricetracker.data.model.StockSymbol
 import com.power.realtimepricetracker.data.model.toPriceRecord
 import com.power.realtimepricetracker.data.websocket.ConnectionState
 import com.power.realtimepricetracker.data.websocket.PriceRepository
@@ -63,4 +61,13 @@ class FeedViewModel @Inject constructor(
     }
 
 
+    fun toggleTracking() {
+        val tracking = _uiState.value.isTracking
+        if (tracking) {
+            repository.stopTracking()
+        } else {
+            repository.startTracking()
+        }
+        _uiState.update { it.copy(isTracking = !tracking) }
+    }
 }

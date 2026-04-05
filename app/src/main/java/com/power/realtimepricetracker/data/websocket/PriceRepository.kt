@@ -12,5 +12,12 @@ class PriceRepository(private val manager: WebSocketManager) {
     val connectionState: StateFlow<ConnectionState>
         get() = manager.connectionState
 
+    suspend fun initializePrices() = manager.intializePrices()
+
+    fun getLastPrice(symbol: String): Double? = manager.getLastPrice(symbol)
+
+    fun startTracking() = manager.start()
+
+    fun stopTracking() = manager.stop()
 
 }

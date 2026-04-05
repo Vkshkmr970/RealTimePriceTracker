@@ -4,6 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.power.realtimepricetracker.data.model.PriceRecord
+import com.power.realtimepricetracker.data.model.PriceUpdate
 import com.power.realtimepricetracker.data.model.toPriceRecord
 import com.power.realtimepricetracker.data.websocket.ConnectionState
 import com.power.realtimepricetracker.data.websocket.PriceRepository
@@ -31,6 +32,11 @@ class DetailViewModel @Inject constructor(
     val uiState: StateFlow<DetailUiState> = _uiState.asStateFlow()
 
     init {
+        repository.getLastPrice(symbol)?.let { seedPrice ->
+            val seed = PriceUpdate(symbol = symbol, price = seedPrice, timestamp = System.currentTimeMillis())
+            _uiState.update { it.copy(record = seed.toPriceRecord(previous = null)) }
+        }
+
         viewModelScope.launch {
             repository.connectionState.collect { state ->
                 _uiState.update { it.copy(connectionState = state) }
